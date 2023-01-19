@@ -545,6 +545,7 @@ local EspInterface = {
 		maxDistance = 150,
 	},
 	teamSettings = {
+		-- default values
 		instances = {
 			enabled = false,
 			textEnabled = false,
