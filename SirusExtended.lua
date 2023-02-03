@@ -520,15 +520,15 @@ function InstanceObject:Render()
 			text.Visible = false;
 		end
 
-		if options.chams == true then
+		if options.chams then
 			highlight.Enabled = true
 			highlight.DepthMode = options.chamsVisibleOnly and Enum.HighlightDepthMode.Occluded or Enum.HighlightDepthMode.AlwaysOnTop;
 			highlight.FillColor = options.chamsFillColor[1];
 			highlight.FillTransparency = options.chamsFillColor[2];
 			highlight.OutlineColor = options.chamsOutlineColor[1];
 			highlight.OutlineTransparency = options.chamsOutlineColor[2];
-		--[[else
-			highlight.Enabled = false]]
+		else
+			highlight.Enabled = false
 		end
 	end
 end
