@@ -448,7 +448,7 @@ function ChamObject:Update()
 
 	highlight.Enabled = enabled and options.chams;
 	if highlight.Enabled then
-		highlight.DepthMode = options.chamsVisibleOnly and Enum.HighlightDepthMode.AlwaysOnTop; --Enum.HighlightDepthMode.Occluded or Enum.HighlightDepthMode.AlwaysOnTop;
+		highlight.DepthMode = options.chamsVisibleOnly and Enum.HighlightDepthMode.Occluded or Enum.HighlightDepthMode.AlwaysOnTop;
 		highlight.Adornee = character;
 		highlight.FillColor = options.chamsFillColor[1];
 		highlight.FillTransparency = options.chamsFillColor[2];
