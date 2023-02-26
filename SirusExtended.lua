@@ -655,8 +655,8 @@ local EspInterface = {
 
 function EspInterface.AddInstance(instance)
 	local cache = EspInterface._objectCache;
-
-	if not cache[instance] then
+	if cache[instance] then
+	else
 		cache[instance] = { InstanceObject.new(instance, EspInterface) };
 	end
 	return cache[instance];
