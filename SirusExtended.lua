@@ -528,7 +528,7 @@ function InstanceObject:Render()
 			highlight.OutlineColor = options.chamsOutlineColor[1];
 			highlight.OutlineTransparency = options.chamsOutlineColor[2];
 		else
-			highlight.Enabled = false
+			highlight.Enabled = options.chams
 		end
 	end
 end
