@@ -1,0 +1,177 @@
+local players = game:GetService("Players")
+local run_service = game:GetService("RunService")
+
+local local_player = players.LocalPlayer
+
+local game_client = {}
+
+local targetBoxColors = {
+    ["Red"] = Color3.new(0.870588, 0.196078, 0.062745),
+    ["Orange"] = Color3.new(0.870588, 0.654901, 0.062745),
+    ["Green"] = Color3.new(0.058823, 0.862745, 0.176470)
+}
+
+do
+    for i,v in next, getgc(true) do
+        if typeof(v) == "table" then
+            if rawget(v, "updateReplication") then
+                game_client.replication_object = v
+            elseif rawget(v, 'setHighMs') then
+                game_client.replication_interface = v
+            end
+        end
+    end
+end
+
+local cheat_client = {
+    connections = {},
+    drawings = {},
+}
+
+local function create_drawing(class, properties)
+    local drawing = Drawing.new(class)
+    for i,v in next, properties do
+        drawing[i] = v
+    end
+    table.insert(cheat_client.drawings, drawing)
+    return drawing
+end
+
+local function create_conection(signal, callback)
+    local connection = signal:Connect(callback)
+    table.insert(cheat_client.connections, connection)
+    return connection
+end
+
+do -- ESP
+    function cheat_client:calculate_player_bounding_box(character) -- BBOT Bounding Box Function my old one was blurry
+        local cam = workspace.CurrentCamera.CFrame
+        local torso = character.PrimaryPart.CFrame
+        local head = character.Head.CFrame
+        local top, top_isrendered = workspace.CurrentCamera:WorldToViewportPoint(head.Position + (torso.UpVector * 1) + cam.UpVector)
+        local bottom, bottom_isrendered = workspace.CurrentCamera:WorldToViewportPoint(torso.Position - (torso.UpVector * 2.5) - cam.UpVector)
+
+        local minY = math.abs(bottom.y - top.y)
+        local sizeX = math.ceil(math.max(math.clamp(math.abs(bottom.x - top.x) * 2.5, 0, minY), minY / 2, 3))
+        local sizeY = math.ceil(math.max(minY, sizeX * 0.5, 3))
+
+        if top_isrendered or bottom_isrendered then
+            local boxtop = Vector2.new(math.floor(top.x * 0.5 + bottom.x * 0.5 - sizeX * 0.5), math.floor(math.min(top.y, bottom.y)))
+            local boxsize = Vector2.new(sizeX, sizeY)
+            return boxtop, boxsize 
+        end
+    end
+
+    function cheat_client:get_character(player)
+        local entry = game_client.replication_interface.getEntry(player)
+
+        if entry then
+            local third_person_object = entry._thirdPersonObject
+            if third_person_object then
+                return third_person_object._character
+            end
+        end
+    end
+
+    function cheat_client:get_alive(player)
+        local entry = game_client.replication_interface.getEntry(player)
+
+        if entry then
+            return entry._alive
+        end
+    end
+
+    function cheat_client:add_player_esp(player)
+        local esp = {
+            drawings = {},
+        }
+
+        do -- Create Drawings
+            esp.drawings.box = create_drawing("Square", {
+                Color = Color3.fromRGB(255, 10, 10),
+                Thickness = 1,
+                ZIndex = -9
+            })
+
+            esp.drawings.box_outline = create_drawing("Square", {   
+                Thickness = 3,
+                Color = Color3.fromRGB(0,0,0),
+                ZIndex = -10,
+            })
+        end
+
+        function esp:destruct()
+            esp.update_connection:Disconnect() -- Disconnect before deleting drawings so that the drawings don't cause an index error
+            for _,v in next, esp.drawings do
+                v:Remove()
+            end
+        end
+
+        esp.update_connection = create_conection(run_service.RenderStepped, function()
+            
+            if player.Parent ~= nil then  
+                
+                local character = cheat_client:get_character(player)
+                local alive = cheat_client:get_alive(player)
+                local team = player.Team
+                
+                if character and alive and team ~= local_player.Team then
+                    
+                    local _, on_screen = workspace.CurrentCamera:WorldToViewportPoint(character.Torso.Position)
+                    
+                    if on_screen then
+                        
+                        local screen_position, screen_size = cheat_client:calculate_player_bounding_box(character)
+                        
+                        if screen_position and screen_size then
+
+                            do -- Box
+                                esp.drawings.box.Color = targetBoxColors.Green
+                                esp.drawings.box_outline.Color = targetBoxColors.Green
+
+                                esp.drawings.box.Position = screen_position
+                                esp.drawings.box.Size = Vector2.new(screen_size.X + 2, screen_size.Y + 2)
+                                
+                                esp.drawings.box_outline.Position = esp.drawings.box.Position
+                                esp.drawings.box_outline.Size = esp.drawings.box.Size
+
+                                esp.drawings.box.Visible = true
+                                esp.drawings.box_outline.Visible = true
+                            end
+
+                        else
+                            for _,v in next, esp.drawings do
+                                v.box_outline.Color = targetBoxColors.Red
+                                v.box.Color = targetBoxColors.Red
+                            end
+                        end
+                    else
+                        for _,v in next, esp.drawings do
+                            v.box_outline.Color = targetBoxColors.Red
+                            v.box.Color = targetBoxColors.Red
+                        end
+                    end
+                else
+                    for _,v in next, esp.drawings do
+                        v.box_outline.Color = targetBoxColors.Red
+                        v.box.Color = targetBoxColors.Red
+                    end
+                end
+            else
+                esp:destruct()
+            end
+        end)
+
+        return esp
+    end
+end
+
+for _,v in next, players:GetPlayers() do
+    if v ~= local_player then
+        cheat_client:add_player_esp(v)
+    end
+end
+
+create_conection(players.PlayerAdded, function(player)
+    cheat_client:add_player_esp(player)
+end)
