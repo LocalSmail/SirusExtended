@@ -141,20 +141,23 @@ do -- ESP
 
                         else
                             for _,v in next, esp.drawings do
-                                v.box_outline.Color = targetBoxColors.Red
-                                v.box.Color = targetBoxColors.Red
+                                v.Color = targetBoxColors.Red
+                                v.Color = targetBoxColors.Red
+                                v.Visible = false
                             end
                         end
                     else
                         for _,v in next, esp.drawings do
-                            v.box_outline.Color = targetBoxColors.Red
-                            v.box.Color = targetBoxColors.Red
+                            v.Color = targetBoxColors.Red
+                            v.Color = targetBoxColors.Red
+                            v.Visible = false
                         end
                     end
                 else
                     for _,v in next, esp.drawings do
-                        v.box_outline.Color = targetBoxColors.Red
-                        v.box.Color = targetBoxColors.Red
+                        v.Color = targetBoxColors.Red
+                        v.Color = targetBoxColors.Red
+                        v.Visible = false
                     end
                 end
             else
